@@ -1,0 +1,14 @@
+.env
+.venv/
+venv/
+chroma_data/
+hospital.db
+__pycache__/
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*.swo
+*.ipynb_checkpoints/
+project_documentation.md
