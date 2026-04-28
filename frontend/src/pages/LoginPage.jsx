@@ -18,7 +18,7 @@ const roleLabels = {
 };
 
 export default function LoginPage() {
-  const [mode, setMode] = useState(null); // 'user' | 'hospital'
+  const [mode, setMode] = useState(null);
   const [hospitalRole, setHospitalRole] = useState(null);
   const [userId, setUserId] = useState('');
   const [password, setPassword] = useState('');
@@ -64,7 +64,7 @@ export default function LoginPage() {
       }}
     >
       <Container maxWidth="sm">
-        {/* Header */}
+        {}
         <Box sx={{ textAlign: 'center', mb: 4 }}>
           <MedicalServicesIcon sx={{ fontSize: 56, color: '#fff', mb: 1 }} />
           <Typography variant="h4" sx={{ color: '#fff', fontWeight: 700, mb: 0.5 }}>
@@ -75,7 +75,7 @@ export default function LoginPage() {
           </Typography>
         </Box>
 
-        {/* Mode Selection */}
+        {}
         {!mode && (
           <Fade in>
             <Box sx={{ display: 'flex', gap: 3, justifyContent: 'center' }}>
@@ -113,7 +113,7 @@ export default function LoginPage() {
           </Fade>
         )}
 
-        {/* Hospital Role Selection */}
+        {}
         {mode === 'hospital' && !hospitalRole && (
           <Fade in>
             <Card sx={{ p: 4, textAlign: 'center' }}>
@@ -146,7 +146,7 @@ export default function LoginPage() {
           </Fade>
         )}
 
-        {/* Login Form */}
+        {}
         {(mode === 'user' || (mode === 'hospital' && hospitalRole)) && (
           <Fade in>
             <Card sx={{ p: 4 }}>

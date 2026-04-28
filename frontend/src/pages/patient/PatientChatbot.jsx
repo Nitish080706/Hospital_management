@@ -47,7 +47,7 @@ export default function PatientChatbot() {
     <Box sx={{ height: 'calc(100vh - 48px)', display: 'flex', flexDirection: 'column' }}>
       <Typography variant="h5" sx={{ mb: 2 }}>AI Assistant</Typography>
 
-      {/* Messages */}
+      {}
       <Card sx={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
         <CardContent sx={{ flex: 1, overflow: 'auto', p: 3 }}>
           {messages.map((msg, i) => (
@@ -109,7 +109,7 @@ export default function PatientChatbot() {
           <div ref={messagesEndRef} />
         </CardContent>
 
-        {/* Input */}
+        {}
         <Box sx={{ p: 2, borderTop: '1px solid', borderColor: 'divider' }}>
           <Box sx={{ display: 'flex', gap: 1 }}>
             <TextField

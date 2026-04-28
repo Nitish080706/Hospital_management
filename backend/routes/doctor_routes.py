@@ -1,15 +1,4 @@
-"""
-Doctor routes:
-  GET  /api/doctor/assigned-patients
-  GET  /api/doctor/patient-history/{patient_id}
-  GET  /api/doctor/profile
-  PUT  /api/doctor/profile
-  POST /api/doctor/process-consultation
-  POST /api/doctor/order-test
-  POST /api/doctor/check-insurance
-  POST /api/doctor/schedule-followup
-  POST /api/doctor/complete-consultation
-"""
+
 
 import os
 import json
@@ -37,7 +26,7 @@ def assigned_patients(authorization: str = Header(None)):
     conn = get_db()
     cur = conn.cursor()
 
-    # Find doctor record by user_id
+
     cur.execute("SELECT id, name FROM doctors WHERE user_id=?", (doc["sub"],))
     doc_row = cur.fetchone()
     if not doc_row:
@@ -46,7 +35,7 @@ def assigned_patients(authorization: str = Header(None)):
 
     doctor_id = doc_row["id"]
 
-    # Get all appointments for this doctor
+
     cur.execute(
         "SELECT a.*, p.name as patient_name, p.age, p.gender "
         "FROM appointments a "
@@ -71,12 +60,12 @@ def patient_history(patient_id: str, authorization: str = Header(None)):
     conn = get_db()
     cur = conn.cursor()
 
-    # Patient info
+
     cur.execute("SELECT * FROM patients WHERE patient_id=?", (patient_id,))
     patient = cur.fetchone()
     patient_data = dict(patient) if patient else None
 
-    # Consultation history
+
     cur.execute(
         "SELECT * FROM consultation_history WHERE patient_id=? ORDER BY created_at DESC",
         (patient_id,),
@@ -90,14 +79,14 @@ def patient_history(patient_id: str, authorization: str = Header(None)):
             pass
         history.append(d)
 
-    # Past test orders
+
     cur.execute(
         "SELECT * FROM test_orders WHERE patient_id=? ORDER BY created_at DESC",
         (patient_id,),
     )
     tests = [dict(r) for r in cur.fetchall()]
 
-    # Past follow-ups
+
     cur.execute(
         "SELECT * FROM consultations WHERE patient_id=? ORDER BY created_at DESC",
         (patient_id,),
@@ -142,7 +131,7 @@ def update_doctor_profile(req: UpdateProfileRequest, authorization: str = Header
     conn = get_db()
     cur = conn.cursor()
 
-    # Get current doctor
+
     cur.execute("SELECT id FROM doctors WHERE user_id=?", (doc["sub"],))
     d = cur.fetchone()
     if not d:
@@ -156,7 +145,7 @@ def update_doctor_profile(req: UpdateProfileRequest, authorization: str = Header
     if req.name is not None:
         updates.append("name=?")
         params.append(req.name)
-        # also update the users table to keep names in sync
+
         cur.execute("UPDATE users SET name=? WHERE user_id=?", (req.name, doc["sub"]))
         
     if req.specialty is not None:
@@ -187,19 +176,19 @@ def process_consultation_route(req: ProcessConsultationRequest, authorization: s
     conn = get_db()
     cur = conn.cursor()
 
-    # Get doctor name
+
     cur.execute("SELECT name FROM doctors WHERE user_id=?", (doc["sub"],))
     doc_row = cur.fetchone()
     doctor_name = doc_row["name"] if doc_row else doc["name"]
 
-    # Call the MCP tool directly
+
     import sys
     sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "aitool"))
     from mcp_server import process_consultation
 
     result = process_consultation(req.raw_notes)
 
-    # Save to consultation history
+
     cur.execute(
         "INSERT INTO consultation_history(patient_id,doctor_name,raw_notes,processed_data,created_at) "
         "VALUES(?,?,?,?,?)",
@@ -212,7 +201,7 @@ def process_consultation_route(req: ProcessConsultationRequest, authorization: s
         ),
     )
 
-    # Update patient diagnosis and medicines from processed result
+
     consultation = result.get("consultation", {})
     prescription = result.get("prescription", [])
     diagnosis_list = consultation.get("diagnosis", [])
@@ -224,7 +213,7 @@ def process_consultation_route(req: ProcessConsultationRequest, authorization: s
             (diagnosis_str, medicines_str, doctor_name, req.patient_id),
         )
 
-    # Update appointment status
+
     cur.execute("SELECT id FROM doctors WHERE user_id=?", (doc["sub"],))
     d = cur.fetchone()
     if d:
@@ -290,7 +279,7 @@ def schedule_followup_route(req: ScheduleFollowupRequest, authorization: str = H
 
     result = schedule_consultation(req.patient_id, req.advice)
 
-    # Update patient next_visit
+
     conn = get_db()
     cur = conn.cursor()
     cur.execute(
@@ -321,7 +310,7 @@ def complete_consultation(req: CompleteRequest, authorization: str = Header(None
             "WHERE patient_id=? AND doctor_id=? AND status IN ('WAITING','IN_CONSULTATION')",
             (req.patient_id, d["id"]),
         )
-        # Free up the doctor
+
         cur.execute("UPDATE doctors SET is_booked=0 WHERE id=?", (d["id"],))
 
     conn.commit()

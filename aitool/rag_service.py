@@ -14,10 +14,8 @@ class RAGService:
         return sqlite3.connect(DB_PATH)
 
     def emergency_query(self, patient_id: str, query: str) -> dict:
-        """
-        Hybrid retrieval: Fetch patient record AND relevant emergency docs.
-        """
-        # 1. Fetch Patient Record
+        
+
         conn = self._db()
         cur = conn.cursor()
         cur.execute(
@@ -41,8 +39,8 @@ class RAGService:
                 "diagnosis": row[7],
             }
 
-        # 2. Retrieve Emergency Docs (ChromaDB)
-        # We query the vector store for the query.
+
+
         results = self.collection.query(
             query_texts=[query],
             n_results=2
@@ -58,7 +56,7 @@ class RAGService:
                     "title": meta.get("title", "Protocol")
                 })
                 
-        # Prioritize critical docs (sorting by severity: critical > high > medium)
+
         severity_order = {"critical": 0, "high": 1, "medium": 2, "low": 3}
         docs.sort(key=lambda x: severity_order.get(x["severity"], 99))
 

@@ -48,11 +48,11 @@ export default function DoctorProfile() {
       await api.put('/api/doctor/profile', formData);
       setSuccess('Profile updated successfully');
       
-      // Update local storage and context if name changed
+
       if (formData.name !== user.name) {
         const updatedUser = { ...user, name: formData.name };
         login({
-          token: localStorage.getItem('token'), // Keep existing token
+          token: localStorage.getItem('token'),
           user_id: user.user_id,
           user_type: user.user_type,
           name: formData.name

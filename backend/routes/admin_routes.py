@@ -1,12 +1,4 @@
-"""
-Admin routes:
-  GET  /api/admin/insurance/{patient_id}
-  PUT  /api/admin/override-insurance/{patient_id}
-  GET  /api/admin/claims
-  PUT  /api/admin/approve-claim/{claim_id}
-  POST /api/admin/create-account
-  GET  /api/admin/accounts
-"""
+
 
 from datetime import datetime
 import json
@@ -58,7 +50,7 @@ class OverrideInsuranceRequest(BaseModel):
     expiry_date: Optional[str] = None
     admin_override: Optional[int] = 1
     override_reason: Optional[str] = ""
-    # For creating insurance if it doesn't exist
+
     provider: Optional[str] = ""
     policy_number: Optional[str] = ""
 
@@ -69,7 +61,7 @@ def override_insurance(patient_id: str, req: OverrideInsuranceRequest, authoriza
     conn = get_db()
     cur = conn.cursor()
 
-    # Check if insurance record exists
+
     cur.execute("SELECT patient_id FROM insurance WHERE patient_id=?", (patient_id,))
     exists = cur.fetchone()
 
@@ -99,7 +91,7 @@ def override_insurance(patient_id: str, req: OverrideInsuranceRequest, authoriza
         params.append(patient_id)
         cur.execute(f"UPDATE insurance SET {', '.join(updates)} WHERE patient_id=?", params)
     else:
-        # Create new insurance record with override
+
         cur.execute(
             "INSERT INTO insurance(patient_id,provider,policy_number,active,coverage_amount,"
             "used_amount,expiry_date,admin_override,override_reason,overridden_by) "
@@ -152,9 +144,9 @@ def approve_claim(claim_id: int, authorization: str = Header(None)):
 class CreateAccountRequest(BaseModel):
     user_id: str
     password: str
-    user_type: str  # doctor, nurse, admin
+    user_type: str
     name: str
-    # Doctor-specific
+
     specialty: Optional[str] = None
     available_time: Optional[str] = None
 
@@ -169,7 +161,7 @@ def create_account(req: CreateAccountRequest, authorization: str = Header(None))
     conn = get_db()
     cur = conn.cursor()
 
-    # Check if user exists
+
     cur.execute("SELECT user_id FROM users WHERE user_id=?", (req.user_id,))
     if cur.fetchone():
         conn.close()
@@ -181,7 +173,7 @@ def create_account(req: CreateAccountRequest, authorization: str = Header(None))
         (req.user_id, hashed, req.user_type, req.name, datetime.now().isoformat()),
     )
 
-    # If doctor, also create doctor record
+
     if req.user_type == "doctor":
         cur.execute(
             "INSERT INTO doctors(user_id,name,specialty,available_time,is_booked) VALUES(?,?,?,?,0)",
@@ -210,7 +202,7 @@ def get_audit_logs(authorization: str = Header(None)):
     _check_admin(authorization)
     conn = get_db()
     cur = conn.cursor()
-    # Fetch latest 100 logs
+
     cur.execute("SELECT * FROM ai_audit_logs ORDER BY timestamp DESC LIMIT 100")
     logs = []
     for row in cur.fetchall():
@@ -232,7 +224,7 @@ def seed_rag(authorization: str = Header(None)):
     try:
         import sys
         import os
-        # Ensure aitool is in the path
+
         aitool_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "aitool")
         if aitool_path not in sys.path:
             sys.path.insert(0, aitool_path)
@@ -250,7 +242,7 @@ async def seed_rag_custom(docs: list, authorization: str = Header(None)):
     try:
         import sys
         import os
-        # Ensure aitool is in the path
+
         aitool_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "aitool")
         if aitool_path not in sys.path:
             sys.path.insert(0, aitool_path)
@@ -268,7 +260,7 @@ async def seed_rag_pdf(file: UploadFile = File(...), authorization: str = Header
     try:
         import sys
         import os
-        # Ensure aitool is in the path
+
         aitool_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "aitool")
         if aitool_path not in sys.path:
             sys.path.insert(0, aitool_path)

@@ -1,19 +1,4 @@
-"""
-Hospital AI MCP Server
-======================
-Single unified MCP server combining all 6 AI tools:
 
-1. allocate_doctor       - AI-powered doctor allocation with specialty matching
-2. process_consultation  - NLP consultation note -> structured clinical JSON
-3. check_insurance       - Real-time insurance eligibility & claim processing
-4. schedule_consultation - Smart follow-up scheduling from doctor advice
-5. order_test            - Lab / imaging test order creation
-6. patient_query         - Patient-scoped data retrieval for chatbot context
-
-Transport: stdio (default) | SSE
-Run:  python mcp_server.py
-      python mcp_server.py --transport sse
-"""
 
 import os
 import re
@@ -32,9 +17,9 @@ except ImportError:
     rag_service = None
 
 
-# =====================================================
-# SERVER INIT
-# =====================================================
+
+
+
 
 mcp = FastMCP(
     name="HospitalAI",
@@ -48,17 +33,17 @@ mcp = FastMCP(
 DB_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "hospital.db")
 
 
-# =====================================================
-# SHARED HELPERS
-# =====================================================
+
+
+
 
 def _db() -> sqlite3.Connection:
-    """Get a connection to the shared hospital database."""
+    
     return sqlite3.connect(DB_PATH)
 
 
 def _groq_client() -> Groq:
-    """Return a Groq client using the env key."""
+    
     key = os.environ.get("GROQ_API_KEY")
     if not key:
         raise EnvironmentError("GROQ_API_KEY not set")
@@ -66,7 +51,7 @@ def _groq_client() -> Groq:
 
 
 def _call_groq(system: str, user: str, model: str = "llama-3.3-70b-versatile") -> str:
-    """Single Groq chat completion call."""
+    
     client = _groq_client()
     res = client.chat.completions.create(
         model=model,
@@ -81,16 +66,16 @@ def _call_groq(system: str, user: str, model: str = "llama-3.3-70b-versatile") -
 
 
 def _safe_json(raw: str) -> dict:
-    """Extract and parse JSON from LLM output."""
+    
     cleaned = re.sub(r"```(?:json)?", "", raw).replace("```", "").strip()
     match = re.search(r"\{.*\}", cleaned, re.DOTALL)
     if not match:
         raise ValueError("No JSON object found in model output")
     return json.loads(match.group())
 
-# =====================================================
-# GUARDRAILS & AUDIT LOGGING
-# =====================================================
+
+
+
 
 class AIAuditLogger:
     @staticmethod
@@ -119,13 +104,13 @@ class AIAuditLogger:
 def validate_input_guardrails(text: str) -> list:
     flags = []
     text_lower = text.lower()
-    # Prompt injection patterns
+
     injection_patterns = ["ignore previous", "return all", "system prompt", "bypass", "override instructions", "disregard"]
     for p in injection_patterns:
         if p in text_lower:
             flags.append(f"Possible prompt injection detected: {p}")
             
-    # Cross-patient queries
+
     if "other patients" in text_lower or "all patients" in text_lower:
         flags.append("Cross-patient query detected")
         
@@ -139,191 +124,69 @@ def validate_output_guardrails(parsed_json: dict) -> list:
         if term in dump_str:
             flags.append(f"Uncertain language detected: {term}")
             
-    # Schema check
+
     if "consultation" in parsed_json and "diagnosis" not in parsed_json["consultation"]:
         flags.append("Missing diagnosis field in schema")
         
     return flags
 
 
-# =====================================================
-# DATABASE SETUP  (runs once on import)
-# =====================================================
+
+
+
 
 def _init_all_tables():
     conn = _db()
     cur = conn.cursor()
 
-    # ----- users (authentication) -----
-    cur.execute("""
-    CREATE TABLE IF NOT EXISTS users (
-        user_id    TEXT PRIMARY KEY,
-        password   TEXT NOT NULL,
-        user_type  TEXT NOT NULL,
-        name       TEXT NOT NULL,
-        created_at TEXT
-    )
-    """)
 
-    # ----- doctors -----
-    cur.execute("""
-    CREATE TABLE IF NOT EXISTS doctors (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        user_id TEXT,
-        name TEXT,
-        specialty TEXT,
-        available_time TEXT,
-        is_booked INTEGER DEFAULT 0
-    )
-    """)
+    cur.execute()
 
-    # ----- waitlist -----
-    cur.execute("""
-    CREATE TABLE IF NOT EXISTS waitlist (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        patient_name TEXT,
-        issue TEXT,
-        requested_specialty TEXT,
-        created_at TEXT
-    )
-    """)
 
-    # ----- patients (TEXT patient_id: pat-name) -----
-    cur.execute("""
-    CREATE TABLE IF NOT EXISTS patients (
-        patient_id TEXT PRIMARY KEY,
-        name TEXT,
-        age INTEGER,
-        gender TEXT,
-        phone TEXT,
-        blood_group TEXT,
-        allergies TEXT,
-        diagnosis TEXT,
-        medicines TEXT,
-        doctor TEXT,
-        next_visit TEXT,
-        emergency INTEGER DEFAULT 0
-    )
-    """)
+    cur.execute()
 
-    # ----- insurance -----
-    cur.execute("""
-    CREATE TABLE IF NOT EXISTS insurance (
-        patient_id TEXT PRIMARY KEY,
-        provider TEXT,
-        policy_number TEXT,
-        active INTEGER,
-        coverage_amount INTEGER,
-        used_amount INTEGER,
-        expiry_date TEXT,
-        admin_override INTEGER DEFAULT 0,
-        override_reason TEXT,
-        overridden_by TEXT
-    )
-    """)
 
-    # ----- claims -----
-    cur.execute("""
-    CREATE TABLE IF NOT EXISTS claims (
-        claim_id INTEGER PRIMARY KEY AUTOINCREMENT,
-        patient_id TEXT,
-        requested_amount INTEGER,
-        status TEXT,
-        reason TEXT,
-        created_at TEXT
-    )
-    """)
+    cur.execute()
 
-    # ----- consultations (schedule follow-up) -----
-    cur.execute("""
-    CREATE TABLE IF NOT EXISTS consultations (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        patient_id TEXT,
-        advice TEXT,
-        next_appointment TEXT,
-        status TEXT,
-        created_at TEXT
-    )
-    """)
 
-    # ----- test_orders -----
-    cur.execute("""
-    CREATE TABLE IF NOT EXISTS test_orders (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        tracking_id TEXT,
-        patient_id TEXT,
-        patient_name TEXT,
-        tests TEXT,
-        status TEXT,
-        created_at TEXT
-    )
-    """)
+    cur.execute()
 
-    # ----- appointments (doctor-patient active sessions) -----
-    cur.execute("""
-    CREATE TABLE IF NOT EXISTS appointments (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        patient_id TEXT,
-        doctor_id INTEGER,
-        doctor_name TEXT,
-        issue TEXT,
-        specialty TEXT,
-        slot TEXT,
-        status TEXT DEFAULT 'WAITING',
-        created_at TEXT
-    )
-    """)
 
-    # ----- consultation_history (processed notes archive) -----
-    cur.execute("""
-    CREATE TABLE IF NOT EXISTS consultation_history (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        patient_id TEXT,
-        doctor_name TEXT,
-        raw_notes TEXT,
-        processed_data TEXT,
-        created_at TEXT
-    )
-    """)
+    cur.execute()
 
-    # ----- ai_audit_logs -----
-    cur.execute("""
-    CREATE TABLE IF NOT EXISTS ai_audit_logs (
-        log_id TEXT PRIMARY KEY,
-        timestamp TEXT,
-        tool_name TEXT,
-        triggered_by TEXT,
-        input_payload TEXT,
-        llm_response_raw TEXT,
-        parsed_output TEXT,
-        guardrail_flags TEXT,
-        outcome TEXT
-    )
-    """)
 
-    # ----- patient_sessions (for patient agent context) -----
-    cur.execute("""
-    CREATE TABLE IF NOT EXISTS patient_sessions (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        patient_id TEXT,
-        role TEXT,
-        content TEXT,
-        timestamp TEXT
-    )
-    """)
+    cur.execute()
+
+
+    cur.execute()
+
+
+    cur.execute()
+
+
+    cur.execute()
+
+
+    cur.execute()
+
+
+    cur.execute()
+
+
+    cur.execute()
 
     conn.commit()
     conn.close()
 
 
 def seed_sample_data():
-    """Insert sample rows for development / testing."""
+    
     import bcrypt
 
     conn = _db()
     cur = conn.cursor()
 
-    # Default admin account
+
     hashed = bcrypt.hashpw("000000".encode(), bcrypt.gensalt()).decode()
     cur.execute(
         "INSERT OR IGNORE INTO users(user_id,password,user_type,name,created_at) "
@@ -331,7 +194,7 @@ def seed_sample_data():
         ("admin-000", hashed, "admin", "System Admin", datetime.now().isoformat()),
     )
 
-    # Doctors
+
     cur.execute("SELECT COUNT(*) FROM doctors")
     if cur.fetchone()[0] == 0:
         doctors = [
@@ -356,7 +219,7 @@ def seed_sample_data():
                 (doc_uid, name, spec, time, booked),
             )
 
-    # Default nurse
+
     nurse_hashed = bcrypt.hashpw("nurse123".encode(), bcrypt.gensalt()).decode()
     cur.execute(
         "INSERT OR IGNORE INTO users(user_id,password,user_type,name,created_at) "
@@ -368,53 +231,21 @@ def seed_sample_data():
     conn.close()
 
 
-# =====================================================
-# TOOL 1 - allocate_doctor
-# =====================================================
+
+
+
 
 @mcp.tool()
 def allocate_doctor(patient_name: str, patient_issue: str) -> dict:
-    """
-    AI-powered doctor allocation.
-
-    Understands the patient issue using Groq LLM, matches the best
-    medical specialty, checks doctor availability, and atomically
-    books a slot.  Urgent cases get priority.  If no slot is free
-    the patient is added to a waitlist.
-
-    Args:
-        patient_name:  Full name of the patient.
-        patient_issue: Free-text description of the patient's issue.
-
-    Returns:
-        Booking confirmation or waitlist entry.
-    """
+    
     conn = _db()
     conn.isolation_level = "EXCLUSIVE"
     cur = conn.cursor()
 
     try:
-        # --- AI classification ---
-        prompt = f"""
-Patient issue: {patient_issue}
 
-Return only JSON:
+        prompt = f
 
-{{
-  "specialty":"best matched specialty",
-  "confidence":0.0,
-  "urgent":true/false,
-  "top2":["spec1","spec2"]
-}}
-
-Rules:
-Children / baby -> Pediatrician
-Skin / acne / rash -> Dermatologist
-Chest pain -> Cardiologist urgent true
-Headache severe neuro -> Neurologist
-General fever cold -> General Physician
-"""
-        # INPUT GUARDRAILS
         input_flags = validate_input_guardrails(patient_issue)
         if any("prompt injection" in f.lower() or "cross-patient" in f.lower() for f in input_flags):
             AIAuditLogger.log("allocate_doctor", "system", {"patient": patient_name, "issue": patient_issue}, "", {}, input_flags, "REJECTED_INPUT")
@@ -444,7 +275,7 @@ General fever cold -> General Physician
         if confidence < 0.60:
             specialty = top2[0]
 
-        # --- Find doctor ---
+
         if urgent:
             cur.execute(
                 "SELECT id,name,specialty,available_time FROM doctors "
@@ -467,7 +298,7 @@ General fever cold -> General Physician
                 (doc_id,),
             )
             if cur.rowcount == 1 or urgent:
-                # Create appointment record
+
                 cur.execute(
                     "INSERT INTO appointments(patient_id,doctor_id,doctor_name,issue,specialty,slot,status,created_at) "
                     "VALUES(?,?,?,?,?,?,?,?)",
@@ -491,7 +322,7 @@ General fever cold -> General Physician
                     "fallback_specialties": top2,
                 }
 
-        # --- No slot -> waitlist ---
+
         cur.execute(
             "SELECT name,specialty,available_time FROM doctors "
             "WHERE specialty=? ORDER BY id ASC LIMIT 1",
@@ -523,99 +354,18 @@ General fever cold -> General Physician
         conn.close()
 
 
-# =====================================================
-# TOOL 2 - process_consultation
-# =====================================================
+
+
+
 
 @mcp.tool()
 def process_consultation(text: str) -> dict:
-    """
-    Process raw doctor consultation / prescription notes into
-    structured clinical JSON using Groq LLM.
+    
+    schema = 
 
-    Extracts: patient info, symptoms, vitals, diagnosis, medicines,
-    recommended tests, follow-up, risk flags, and summary.
+    system = f
 
-    Args:
-        text: Raw doctor notes or prescription text.
 
-    Returns:
-        Structured clinical JSON with metadata.
-    """
-    schema = """
-{
-  "patient_info": {
-    "patient_id":"",
-    "name": "",
-    "age": "",
-    "gender": ""
-  },
-  "consultation": {
-    "chief_complaint": "",
-    "symptoms": [],
-    "duration": "",
-    "vitals": {
-      "bp": "",
-      "pulse": "",
-      "temperature": ""
-    },
-    "diagnosis": [],
-    "advice": []
-  },
-  "prescription": [
-    {
-      "medicine_name": "",
-      "dosage": "",
-      "frequency": "",
-      "duration": "",
-      "route": ""
-    }
-  ],
-  "tests_recommended": [],
-  "follow_up": "",
-  "risk_flags": [],
-  "summary": ""
-}
-"""
-
-    system = f"""
-You are an expert medical AI assistant.
-
-Convert doctor consultation notes and prescriptions into structured JSON.
-
-Return ONLY valid JSON.
-
-Rules:
-
-1. Extract patient name, age, gender if available.
-2. Extract symptoms and duration.
-3. Extract vitals:
-   BP, pulse, temperature.
-4. Extract diagnosis.
-5. Extract medicines:
-   medicine_name
-   dosage
-   frequency
-   duration
-   route
-6. Extract tests recommended.
-7. Extract follow-up instructions.
-8. Detect risk_flags if present:
-   - chest pain
-   - breathing difficulty
-   - fever > 5 days
-   - diabetes uncontrolled
-   - BP > 180/120
-9. Create short summary.
-
-Use empty string or [] if missing.
-
-Schema:
-
-{schema}
-"""
-
-    # INPUT GUARDRAILS
     input_flags = validate_input_guardrails(text)
     if any("prompt injection" in f.lower() or "cross-patient" in f.lower() for f in input_flags):
         AIAuditLogger.log("process_consultation", "system", {"text": text}, "", {}, input_flags, "REJECTED_INPUT")
@@ -643,25 +393,13 @@ Schema:
     return result
 
 
-# =====================================================
-# TOOL 3 - check_insurance
-# =====================================================
+
+
+
 
 @mcp.tool()
 def check_insurance(patient_id: str, requested_amount: int) -> dict:
-    """
-    Real-time insurance eligibility check and claim processing.
-
-    Validates policy status, expiry, remaining coverage, and records
-    a claim entry (APPROVED / REJECTED) with a reason.
-
-    Args:
-        patient_id:       Patient's unique ID (e.g. pat-nitish).
-        requested_amount: Amount being claimed in INR.
-
-    Returns:
-        Claim result with eligibility details.
-    """
+    
     conn = _db()
     cur = conn.cursor()
 
@@ -683,7 +421,7 @@ def check_insurance(patient_id: str, requested_amount: int) -> dict:
     reason = ""
     status = "APPROVED"
 
-    # Admin override bypasses all checks
+
     if admin_override:
         reason = "Approved via admin override"
         status = "APPROVED"
@@ -722,12 +460,12 @@ def check_insurance(patient_id: str, requested_amount: int) -> dict:
     }
 
 
-# =====================================================
-# TOOL 4 - schedule_consultation
-# =====================================================
+
+
+
 
 def _parse_follow_up_date(advice: str) -> datetime:
-    """Extract a future date from doctor advice text."""
+    
     text = advice.lower()
 
     if "tomorrow" in text:
@@ -745,25 +483,12 @@ def _parse_follow_up_date(advice: str) -> datetime:
     if match:
         return datetime.now() + timedelta(days=int(match.group(1)) * 30)
 
-    return datetime.now() + timedelta(days=7)  # default 1 week
+    return datetime.now() + timedelta(days=7)
 
 
 @mcp.tool()
 def schedule_consultation(patient_id: str, advice: str) -> dict:
-    """
-    Schedule next consultation based on the doctor's advice.
-
-    Parses natural-language follow-up instructions
-    (e.g. "come after 5 days", "review in 1 week") and creates
-    a dated consultation entry.
-
-    Args:
-        patient_id: Patient's unique ID (e.g. pat-nitish).
-        advice:     Doctor's follow-up advice text.
-
-    Returns:
-        Scheduled consultation details.
-    """
+    
     next_date = _parse_follow_up_date(advice).strftime("%Y-%m-%d")
 
     conn = _db()
@@ -787,26 +512,13 @@ def schedule_consultation(patient_id: str, advice: str) -> dict:
     }
 
 
-# =====================================================
-# TOOL 5 - order_test
-# =====================================================
+
+
+
 
 @mcp.tool()
 def order_test(patient_id: str, patient_name: str, tests_recommended: list[str]) -> dict:
-    """
-    Create a lab / imaging test request.
-
-    Generates a unique tracking ID and stores the order in the
-    database with status REQUESTED.
-
-    Args:
-        patient_id:        Patient's unique ID (e.g. pat-nitish).
-        patient_name:      Patient's full name.
-        tests_recommended: List of test names (e.g. ["CBC", "Chest X-Ray"]).
-
-    Returns:
-        Order confirmation with tracking ID.
-    """
+    
     if not tests_recommended:
         return {"status": "NO_ACTION", "message": "No tests recommended."}
 
@@ -840,24 +552,14 @@ def order_test(patient_id: str, patient_name: str, tests_recommended: list[str])
     }
 
 
-# =====================================================
-# TOOL 6 - patient_query
-# =====================================================
+
+
+
 
 @mcp.tool()
 def patient_query(patient_id: str, query: str = "", emergency_mode: bool = False) -> dict:
-    """
-    Patient-scoped data retrieval with RAG capabilities for emergency.
+    
 
-    Args:
-        patient_id: Patient's unique ID (e.g. pat-nitish).
-        query:      The specific medical query or situation.
-        emergency_mode: If true, performs hybrid retrieval with ChromaDB protocols.
-
-    Returns:
-        Patient context and optionally relevant emergency protocols.
-    """
-    # INPUT GUARDRAILS
     input_flags = validate_input_guardrails(query)
     if any("prompt injection" in f.lower() or "cross-patient" in f.lower() for f in input_flags):
         AIAuditLogger.log("patient_query", "system", {"patient_id": patient_id, "query": query}, "", {}, input_flags, "REJECTED_INPUT")
@@ -868,7 +570,7 @@ def patient_query(patient_id: str, query: str = "", emergency_mode: bool = False
         AIAuditLogger.log("patient_query", "system", {"patient_id": patient_id, "query": query, "emergency": True}, "", result, input_flags, "SUCCESS")
         return result
 
-    # Standard DB Lookup
+
     conn = _db()
     cur = conn.cursor()
 
@@ -906,9 +608,9 @@ def patient_query(patient_id: str, query: str = "", emergency_mode: bool = False
     return result
 
 
-# =====================================================
-# STARTUP
-# =====================================================
+
+
+
 
 _init_all_tables()
 
@@ -916,7 +618,7 @@ _init_all_tables()
 if __name__ == "__main__":
     import sys
 
-    # Seed sample data if --seed flag is passed
+
     if "--seed" in sys.argv:
         seed_sample_data()
         print("Sample data seeded.")

@@ -1,6 +1,4 @@
-"""
-Authentication helpers: JWT token management and password hashing.
-"""
+
 
 import os
 from datetime import datetime, timedelta

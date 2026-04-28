@@ -1,6 +1,4 @@
-"""
-Auth routes: POST /api/login
-"""
+
 
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel

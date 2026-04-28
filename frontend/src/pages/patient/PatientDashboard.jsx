@@ -65,7 +65,7 @@ export default function PatientDashboard() {
       </Box>
 
       <Grid container spacing={3}>
-        {/* Current Appointment */}
+        {}
         <Grid size={{ xs: 12, md: 6 }}>
           <Card sx={{ height: '100%' }}>
             <CardContent>
@@ -99,7 +99,7 @@ export default function PatientDashboard() {
           </Card>
         </Grid>
 
-        {/* Insurance */}
+        {}
         <Grid size={{ xs: 12, md: 6 }}>
           <Card sx={{ height: '100%' }}>
             <CardContent>
@@ -139,7 +139,7 @@ export default function PatientDashboard() {
           </Card>
         </Grid>
 
-        {/* Follow-up */}
+        {}
         <Grid size={{ xs: 12, md: 6 }}>
           <Card sx={{ height: '100%' }}>
             <CardContent>
@@ -164,7 +164,7 @@ export default function PatientDashboard() {
           </Card>
         </Grid>
 
-        {/* Lab Orders */}
+        {}
         <Grid size={{ xs: 12, md: 6 }}>
           <Card sx={{ height: '100%' }}>
             <CardContent>
@@ -191,7 +191,7 @@ export default function PatientDashboard() {
           </Card>
         </Grid>
 
-        {/* Available Doctors */}
+        {}
         <Grid size={{ xs: 12, md: 6 }}>
           <Card sx={{ height: '100%' }}>
             <CardContent>
@@ -218,7 +218,7 @@ export default function PatientDashboard() {
           </Card>
         </Grid>
 
-        {/* Claims History */}
+        {}
         {claims && claims.length > 0 && (
           <Grid size={12}>
             <Card>
@@ -255,7 +255,7 @@ export default function PatientDashboard() {
           </Grid>
         )}
 
-        {/* Consultation History */}
+        {}
         {consultation_history && consultation_history.length > 0 && (
           <Grid size={12}>
             <Card>

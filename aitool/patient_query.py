@@ -1,25 +1,12 @@
-"""
-patient_query.py
 
-Simple AI Tool:
-Patient chatbot context provider
-STRICTLY scoped to one patient only
-
-- Uses patient_id as primary key
-- Returns only that patient's details
-- No cross-patient access
-- Good for chatbot / assistant context
-
-Use only Python
-"""
 
 import sqlite3
 import json
 
 
-# =====================================
-# DATABASE
-# =====================================
+
+
+
 
 DB_NAME = "hospital.db"
 
@@ -28,29 +15,15 @@ def init_db():
     conn = sqlite3.connect(DB_NAME)
     cur = conn.cursor()
 
-    cur.execute("""
-    CREATE TABLE IF NOT EXISTS patients (
-        patient_id INTEGER PRIMARY KEY,
-        name TEXT,
-        age INTEGER,
-        gender TEXT,
-        phone TEXT,
-        blood_group TEXT,
-        allergies TEXT,
-        diagnosis TEXT,
-        medicines TEXT,
-        doctor TEXT,
-        next_visit TEXT
-    )
-    """)
+    cur.execute()
 
     conn.commit()
     conn.close()
 
 
-# =====================================
-# SAMPLE DATA
-# =====================================
+
+
+
 
 def seed_data():
     conn = sqlite3.connect(DB_NAME)
@@ -87,34 +60,23 @@ def seed_data():
         )
     ]
 
-    cur.executemany("""
-    INSERT INTO patients
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    """, rows)
+    cur.executemany(, rows)
 
     conn.commit()
     conn.close()
 
 
-# =====================================
-# MAIN TOOL
-# =====================================
+
+
+
 
 def patient_query(patient_id):
-    """
-    Strict single-patient context fetch
-    """
+    
 
     conn = sqlite3.connect(DB_NAME)
     cur = conn.cursor()
 
-    cur.execute("""
-    SELECT patient_id, name, age, gender, phone,
-           blood_group, allergies, diagnosis,
-           medicines, doctor, next_visit
-    FROM patients
-    WHERE patient_id=?
-    """, (patient_id,))
+    cur.execute(, (patient_id,))
 
     row = cur.fetchone()
 
@@ -145,9 +107,9 @@ def patient_query(patient_id):
     }
 
 
-# =====================================
-# RUN
-# =====================================
+
+
+
 
 if __name__ == "__main__":
     init_db()

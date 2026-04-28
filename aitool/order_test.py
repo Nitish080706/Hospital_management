@@ -1,18 +1,4 @@
-"""
-order_test.py
 
-Simple AI Tool:
-Creates lab / imaging test request
-when tests are recommended.
-
-Generates:
-- Tracking ID
-- Requested tests
-- Status
-- Notification message
-
-Use only Python
-"""
 
 import sqlite3
 import uuid
@@ -20,9 +6,9 @@ import json
 from datetime import datetime
 
 
-# =====================================
-# DATABASE
-# =====================================
+
+
+
 
 DB_NAME = "hospital.db"
 
@@ -31,29 +17,18 @@ def init_db():
     conn = sqlite3.connect(DB_NAME)
     cur = conn.cursor()
 
-    cur.execute("""
-    CREATE TABLE IF NOT EXISTS test_orders (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        tracking_id TEXT,
-        patient_name TEXT,
-        tests TEXT,
-        status TEXT,
-        created_at TEXT
-    )
-    """)
+    cur.execute()
 
     conn.commit()
     conn.close()
 
 
-# =====================================
-# MAIN TOOL
-# =====================================
+
+
+
 
 def order_test(patient_name, tests_recommended):
-    """
-    Creates lab/imaging test request
-    """
+    
 
     if not tests_recommended:
         return {
@@ -66,11 +41,7 @@ def order_test(patient_name, tests_recommended):
     conn = sqlite3.connect(DB_NAME)
     cur = conn.cursor()
 
-    cur.execute("""
-    INSERT INTO test_orders
-    (tracking_id, patient_name, tests, status, created_at)
-    VALUES (?, ?, ?, ?, ?)
-    """, (
+    cur.execute(, (
         tracking_id,
         patient_name,
         json.dumps(tests_recommended),
@@ -90,9 +61,9 @@ def order_test(patient_name, tests_recommended):
     }
 
 
-# =====================================
-# RUN
-# =====================================
+
+
+
 
 if __name__ == "__main__":
     init_db()

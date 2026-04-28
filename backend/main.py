@@ -1,16 +1,14 @@
-"""
-Hospital Management System - FastAPI Backend
-"""
+
 
 import os
 import sys
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-# Ensure aitool is importable (triggers DB init + table creation)
+
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "aitool"))
 
-# Load .env
+
 from dotenv import load_dotenv
 load_dotenv(os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), ".env"))
 
@@ -22,7 +20,7 @@ from backend.routes.admin_routes import router as admin_router
 
 app = FastAPI(title="Hospital AI Management System", version="1.0.0")
 
-# CORS for React dev server
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["http://localhost:5173", "http://localhost:3000"],
@@ -31,7 +29,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Register routers
+
 app.include_router(auth_router)
 app.include_router(patient_router)
 app.include_router(doctor_router)
@@ -46,6 +44,6 @@ def health():
 
 @app.on_event("startup")
 def startup():
-    """Seed default data on first run."""
+    
     from mcp_server import seed_sample_data
     seed_sample_data()

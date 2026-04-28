@@ -40,7 +40,7 @@ def seed_documents():
     print("Seeding complete.")
 
 def seed_custom_documents(docs):
-    """Seed ChromaDB with a custom list of dictionaries."""
+    
     client = chromadb.PersistentClient(path=CHROMA_DB_PATH)
     collection = client.get_or_create_collection(name="emergency_protocols")
     
@@ -54,7 +54,7 @@ def seed_custom_documents(docs):
         )
 
 def seed_pdf_document(file_bytes, filename):
-    """Extract text from PDF and seed ChromaDB."""
+    
     from pypdf import PdfReader
     import io
     
@@ -69,7 +69,7 @@ def seed_pdf_document(file_bytes, filename):
     client = chromadb.PersistentClient(path=CHROMA_DB_PATH)
     collection = client.get_or_create_collection(name="emergency_protocols")
     
-    # Chunking: split text into segments of 2000 chars with some overlap
+
     chunk_size = 2000
     overlap = 200
     chunks = []

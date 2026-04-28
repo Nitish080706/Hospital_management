@@ -21,14 +21,14 @@ export default function ConsultationPage() {
   const [actionLoading, setActionLoading] = useState(false);
   const [error, setError] = useState('');
 
-  // Step data
+
   const [rawNotes, setRawNotes] = useState('');
   const [processedResult, setProcessedResult] = useState(null);
   const [testResult, setTestResult] = useState(null);
   const [insuranceResult, setInsuranceResult] = useState(null);
   const [followupResult, setFollowupResult] = useState(null);
 
-  // Optional flags
+
   const [skipTests, setSkipTests] = useState(false);
   const [skipInsurance, setSkipInsurance] = useState(true);
   const [insuranceAmount, setInsuranceAmount] = useState('');
@@ -50,7 +50,7 @@ export default function ConsultationPage() {
       });
       setProcessedResult(res.data.result);
       setActiveStep(2);
-      // Pre-fill follow-up from AI result
+
       if (res.data.result?.follow_up) setFollowupAdvice(res.data.result.follow_up);
     } catch (err) {
       setError(err.response?.data?.detail || 'Processing failed');
@@ -132,7 +132,7 @@ export default function ConsultationPage() {
 
       {error && <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError('')}>{error}</Alert>}
 
-      {/* Stepper */}
+      {}
       <Stepper activeStep={activeStep} alternativeLabel sx={{ mb: 4 }}>
         {steps.map((label) => (
           <Step key={label}>
@@ -142,7 +142,7 @@ export default function ConsultationPage() {
       </Stepper>
 
       <Grid container spacing={3}>
-        {/* Left: History */}
+        {}
         <Grid size={{ xs: 12, md: 4 }}>
           <Card>
             <CardContent>
@@ -172,9 +172,9 @@ export default function ConsultationPage() {
           </Card>
         </Grid>
 
-        {/* Right: Active Step */}
+        {}
         <Grid size={{ xs: 12, md: 8 }}>
-          {/* Step 0-1: Write & Process Notes */}
+          {}
           {activeStep <= 1 && (
             <Card>
               <CardContent>
@@ -197,7 +197,7 @@ export default function ConsultationPage() {
             </Card>
           )}
 
-          {/* Step 2: Order Tests */}
+          {}
           {activeStep === 2 && (
             <Card>
               <CardContent>
@@ -257,7 +257,7 @@ export default function ConsultationPage() {
             </Card>
           )}
 
-          {/* Step 3: Insurance */}
+          {}
           {activeStep === 3 && (
             <Card>
               <CardContent>
@@ -290,7 +290,7 @@ export default function ConsultationPage() {
             </Card>
           )}
 
-          {/* Step 4: Follow-up */}
+          {}
           {activeStep === 4 && (
             <Card>
               <CardContent>
@@ -318,7 +318,7 @@ export default function ConsultationPage() {
             </Card>
           )}
 
-          {/* Step 5: Complete */}
+          {}
           {activeStep === 5 && (
             <Card>
               <CardContent sx={{ textAlign: 'center', py: 4 }}>

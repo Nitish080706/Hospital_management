@@ -22,11 +22,11 @@ export default function RegisterPatient() {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(null);
   
-  // Edit Dialog State
+
   const [editOpen, setEditOpen] = useState(false);
   const [editData, setEditData] = useState(null);
   
-  // Assign Doctor Dialog State
+
   const [assignOpen, setAssignOpen] = useState(false);
   const [assignPatient, setAssignPatient] = useState(null);
   const [doctors, setDoctors] = useState([]);
@@ -88,7 +88,7 @@ export default function RegisterPatient() {
       await api.put(`/api/nurse/patient/${editData.patient_id}`, editData);
       setSuccess(`Patient ${editData.name} updated successfully.`);
       setEditOpen(false);
-      handleSearch(); // Refresh search results
+      handleSearch();
     } catch (err) {
       setError(err.response?.data?.detail || 'Edit failed');
     }
@@ -226,7 +226,7 @@ export default function RegisterPatient() {
         </CardContent>
       </Card>
 
-      {/* Edit Patient Dialog */}
+      {}
       <Dialog open={editOpen} onClose={() => setEditOpen(false)} maxWidth="sm" fullWidth>
         <DialogTitle>Edit Patient Details</DialogTitle>
         <DialogContent dividers>
@@ -259,7 +259,7 @@ export default function RegisterPatient() {
         </DialogActions>
       </Dialog>
 
-      {/* Assign Doctor Dialog */}
+      {}
       <Dialog open={assignOpen} onClose={() => setAssignOpen(false)} maxWidth="xs" fullWidth>
         <DialogTitle>Manually Assign Doctor</DialogTitle>
         <DialogContent dividers>

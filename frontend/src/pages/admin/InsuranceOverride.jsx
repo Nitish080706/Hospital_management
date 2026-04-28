@@ -78,7 +78,7 @@ export default function InsuranceOverride() {
       };
       await api.put(`/api/admin/override-insurance/${patientId}`, payload);
       setSuccess('Insurance overridden successfully');
-      handleSearch(); // Refresh
+      handleSearch();
     } catch (err) {
       setError(err.response?.data?.detail || 'Override failed');
     } finally {
@@ -91,7 +91,7 @@ export default function InsuranceOverride() {
     try {
       await api.put(`/api/admin/approve-claim/${claimId}`);
       setSuccess(`Claim #${claimId} approved`);
-      handleSearch(); // Refresh
+      handleSearch();
     } catch (err) {
       setError(err.response?.data?.detail || 'Approval failed');
     } finally {

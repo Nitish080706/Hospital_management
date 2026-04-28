@@ -1,25 +1,7 @@
-"""
-check_insurance.py
-
-Simple AI Tool:
-- Real-time eligibility
-- Coverage validation
-- Claim status
-- Generate rejection reason
-
-Uses patient_id as primary key
-
-Use only Python
-"""
-
 import sqlite3
 import json
 from datetime import datetime
 
-
-# =====================================
-# DATABASE
-# =====================================
 
 DB_NAME = "hospital.db"
 
@@ -28,36 +10,12 @@ def init_db():
     conn = sqlite3.connect(DB_NAME)
     cur = conn.cursor()
 
-    cur.execute("""
-    CREATE TABLE IF NOT EXISTS insurance (
-        patient_id INTEGER PRIMARY KEY,
-        provider TEXT,
-        policy_number TEXT,
-        active INTEGER,
-        coverage_amount INTEGER,
-        used_amount INTEGER,
-        expiry_date TEXT
-    )
-    """)
+    cur.execute()
 
-    cur.execute("""
-    CREATE TABLE IF NOT EXISTS claims (
-        claim_id INTEGER PRIMARY KEY AUTOINCREMENT,
-        patient_id INTEGER,
-        requested_amount INTEGER,
-        status TEXT,
-        reason TEXT,
-        created_at TEXT
-    )
-    """)
+    cur.execute()
 
     conn.commit()
     conn.close()
-
-
-# =====================================
-# SAMPLE DATA
-# =====================================
 
 def seed_data():
     conn = sqlite3.connect(DB_NAME)
@@ -71,33 +29,19 @@ def seed_data():
         (103, "HDFC Ergo", "POL1003", 1, 30000, 30000, "2027-05-01")
     ]
 
-    cur.executemany("""
-    INSERT INTO insurance
-    VALUES (?, ?, ?, ?, ?, ?, ?)
-    """, rows)
+    cur.executemany(, rows)
 
     conn.commit()
     conn.close()
 
 
-# =====================================
-# MAIN TOOL
-# =====================================
-
 def check_insurance(patient_id, requested_amount):
-    """
-    Real-time insurance check
-    """
+    
 
     conn = sqlite3.connect(DB_NAME)
     cur = conn.cursor()
 
-    cur.execute("""
-    SELECT provider, policy_number, active,
-           coverage_amount, used_amount, expiry_date
-    FROM insurance
-    WHERE patient_id=?
-    """, (patient_id,))
+    cur.execute(, (patient_id,))
 
     row = cur.fetchone()
 
@@ -116,9 +60,6 @@ def check_insurance(patient_id, requested_amount):
     reason = ""
     status = "APPROVED"
 
-    # =====================================
-    # VALIDATION
-    # =====================================
 
     if active == 0:
         status = "REJECTED"
@@ -139,15 +80,8 @@ def check_insurance(patient_id, requested_amount):
     else:
         reason = "Eligible and covered"
 
-    # =====================================
-    # CLAIM ENTRY
-    # =====================================
 
-    cur.execute("""
-    INSERT INTO claims
-    (patient_id, requested_amount, status, reason, created_at)
-    VALUES (?, ?, ?, ?, ?)
-    """, (
+    cur.execute(, (
         patient_id,
         requested_amount,
         status,
@@ -175,9 +109,6 @@ def check_insurance(patient_id, requested_amount):
     }
 
 
-# =====================================
-# RUN
-# =====================================
 
 if __name__ == "__main__":
     init_db()

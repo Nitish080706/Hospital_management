@@ -16,14 +16,14 @@ const actions = [
     description: 'Manage and override patient insurance policies',
     icon: <ShieldIcon sx={{ fontSize: 48 }} />,
     path: '/admin/insurance',
-    color: '#D32F2F', // Error/Red
+    color: '#D32F2F',
   },
   {
     label: 'Manage Accounts',
     description: 'Create and view staff accounts',
     icon: <ManageAccountsIcon sx={{ fontSize: 48 }} />,
     path: '/admin/accounts',
-    color: '#1565C0', // Primary Dark
+    color: '#1565C0',
   },
   {
     label: 'Register Patient',
@@ -96,7 +96,7 @@ export default function AdminDashboard() {
         setSnackbar({ open: true, message: err.response?.data?.detail || err.message || 'Invalid JSON file', severity: 'error' });
       } finally {
         setIsSeeding(false);
-        event.target.value = ''; // Reset input
+        event.target.value = '';
       }
     };
     reader.readAsText(file);
