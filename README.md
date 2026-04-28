@@ -179,25 +179,7 @@ Patient: "Do I have any appointments this week and are my blood tests ready?"
 Conversational memory is powered by the `patient_sessions` table, maintaining full context across multi-turn conversations.
 
 <br/>
-```
-#  MCP Tool-Based AI Architecture
 
-This system uses **Model Context Protocol (MCP)** through FastMCP.
-
-Instead of only generating text, the LLM can securely access real hospital tools.
-
-## Example Tools
-
-- get_my_appointments  
-- get_test_results  
-- check_my_insurance_status  
-- assign_doctor  
-- parse_clinical_notes  
-- create_prescription  
-- schedule_followup  
-- retrieve_emergency_protocol  
----
-```
 ## Role-Based Workflows
 
 ### Patient
